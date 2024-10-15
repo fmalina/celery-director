@@ -28,14 +28,28 @@ def test_post_workflow_without_payload(client, no_worker):
 
 
 def test_post_workflow_with_payload(client, no_worker):
-    payload = {**DEFAULT_PAYLOAD}
-    payload["payload"] = {"nested": {"foo": "bar"}}
+    payload = {**DEFAULT_PAYLOAD, "payload": {"nested": {"foo": "bar"}}}
     resp = client.post("/api/workflows", json=payload)
     assert resp.status_code == 201
     assert resp.json == {
         "fullname": "example.WORKFLOW",
         "name": "WORKFLOW",
         "payload": {"nested": {"foo": "bar"}},
+        "periodic": False,
+        "project": "example",
+        "status": "pending",
+    }
+
+
+def test_post_workflow_with_comment(client, no_worker):
+    payload = {**DEFAULT_PAYLOAD, "comment": "This is an example workflow."}
+    resp = client.post("/api/workflows", json=payload)
+    assert resp.status_code == 201
+    assert resp.json == {
+        "fullname": "example.WORKFLOW",
+        "name": "WORKFLOW",
+        "payload": {},
+        "comment": "This is an example workflow.",
         "periodic": False,
         "project": "example",
         "status": "pending",
@@ -80,8 +94,11 @@ def test_relaunch_not_existing_workflow(client):
 
 
 def test_relaunch_workflow(client, no_worker):
-    payload = {**DEFAULT_PAYLOAD}
-    payload["payload"] = {"nested": {"foo": "bar"}}
+    payload = {
+        **DEFAULT_PAYLOAD,
+        "payload": {"nested": {"foo": "bar"}},
+        "comment": "This is an example workflow.",
+    }
     resp = client.post("/api/workflows", json=payload)
     with patch("tests.conftest.DirectorResponse._KEYS_TO_REMOVE", new=[]):
         workflow_id = resp.json["id"]
@@ -93,6 +110,7 @@ def test_relaunch_workflow(client, no_worker):
         "fullname": "example.WORKFLOW",
         "name": "WORKFLOW",
         "payload": {"nested": {"foo": "bar"}},
+        "comment": "This is an example workflow.",
         "periodic": False,
         "project": "example",
         "status": "pending",
@@ -117,6 +135,33 @@ def test_relaunch_workflow(client, no_worker):
         for t in client.get(f"/api/workflows/{workflows[1]['id']}").json.get("tasks")
     ]
     assert tasks1 == tasks2
+
+
+def test_cancel_not_existing_workflow(client, no_worker):
+    resp = client.post(
+        "/api/workflows/280d0c4065d04063a800a3b674562711/cancel", json={}
+    )
+    assert resp.status_code == 404
+
+
+def test_cancel_workflow(client, no_worker):
+    resp = client.post(
+        "/api/workflows",
+        json={"project": "example", "name": "DELAY_TASK", "payload": {}},
+    )
+    with patch("tests.conftest.DirectorResponse._KEYS_TO_REMOVE", new=[]):
+        workflow_id = resp.json["id"]
+    assert resp.status_code == 201
+
+    resp = client.post(f"/api/workflows/{workflow_id}/cancel", json={})
+    assert resp.status_code == 201
+    assert resp.json["status"] == "canceled"
+
+    tasks = [
+        t["status"]
+        for t in client.get(f"/api/workflows/{workflow_id}").json.get("tasks")
+    ]
+    assert tasks[0] == "canceled"
 
 
 def test_not_found_workflows(client, no_worker):
@@ -231,6 +276,7 @@ def test_get_workflow(client, no_worker):
                 "previous": [],
                 "result": None,
                 "status": "pending",
+                "is_hook": False,
             }
         ],
     }
@@ -271,3 +317,117 @@ def test_schema(client, no_worker):
     payload["payload"] = {"name": "foo", "price": 100}
     resp = client.post("/api/workflows", json=payload)
     assert resp.status_code == 201
+
+
+def test_list_definitions(client, no_worker):
+    resp = client.get("/api/definitions")
+    assert resp.status_code == 200
+    assert resp.json == [
+        {
+            "fullname": "example.CELERY_ERROR_MULTIPLE_TASKS",
+            "name": "CELERY_ERROR_MULTIPLE_TASKS",
+            "project": "example",
+            "tasks": ["TASK_A", "TASK_CELERY_ERROR"],
+        },
+        {
+            "fullname": "example.CELERY_ERROR_ONE_TASK",
+            "name": "CELERY_ERROR_ONE_TASK",
+            "project": "example",
+            "tasks": ["TASK_CELERY_ERROR"],
+        },
+        {
+            "fullname": "example.DELAY_TASK",
+            "name": "DELAY_TASK",
+            "project": "example",
+            "tasks": ["DELAY"],
+        },
+        {
+            "fullname": "example.ERROR",
+            "name": "ERROR",
+            "project": "example",
+            "tasks": ["TASK_ERROR"],
+        },
+        {
+            "fullname": "example.FAILURE_HOOK",
+            "hooks": {"failure": "TASK_B"},
+            "name": "FAILURE_HOOK",
+            "project": "example",
+            "tasks": ["TASK_A", "TASK_ERROR"],
+        },
+        {
+            "fullname": "example.RETURN_EXCEPTION",
+            "name": "RETURN_EXCEPTION",
+            "project": "example",
+            "tasks": ["STR", "TASK_ERROR"],
+        },
+        {
+            "fullname": "example.RETURN_VALUES",
+            "name": "RETURN_VALUES",
+            "project": "example",
+            "tasks": ["STR", "INT", "LIST", "NONE", "DICT", "NESTED"],
+        },
+        {
+            "fullname": "example.SIMPLE_CHAIN",
+            "name": "SIMPLE_CHAIN",
+            "project": "example",
+            "tasks": ["TASK_A", "TASK_B", "TASK_C"],
+        },
+        {
+            "fullname": "example.SIMPLE_CHAIN_ERROR",
+            "name": "SIMPLE_CHAIN_ERROR",
+            "project": "example",
+            "tasks": ["TASK_A", "TASK_B", "TASK_ERROR"],
+        },
+        {
+            "fullname": "example.SIMPLE_GROUP",
+            "name": "SIMPLE_GROUP",
+            "project": "example",
+            "tasks": [
+                "TASK_A",
+                {"EXAMPLE_GROUP": {"tasks": ["TASK_B", "TASK_C"], "type": "group"}},
+            ],
+        },
+        {
+            "fullname": "example.SIMPLE_GROUP_ERROR",
+            "name": "SIMPLE_GROUP_ERROR",
+            "project": "example",
+            "tasks": [
+                "TASK_A",
+                {"EXAMPLE_GROUP": {"tasks": ["TASK_ERROR", "TASK_C"], "type": "group"}},
+            ],
+        },
+        {
+            "fullname": "example.SUCCESSANDFAILURE_HOOK",
+            "hooks": {"failure": "TASK_C", "success": "TASK_B"},
+            "name": "SUCCESSANDFAILURE_HOOK",
+            "project": "example",
+            "tasks": ["TASK_A"],
+        },
+        {
+            "fullname": "example.TASK_ROUTING",
+            "name": "TASK_ROUTING",
+            "project": "example",
+            "queue": {"customs": {"TASK_B": "q2"}, "default": "q1"},
+            "tasks": [
+                "TASK_A",
+                {"EXAMPLE_GROUP": {"tasks": ["TASK_B", "TASK_C"], "type": "group"}},
+            ],
+        },
+        {
+            "fullname": "example.WORKFLOW",
+            "name": "WORKFLOW",
+            "project": "example",
+            "tasks": ["TASK_EXAMPLE"],
+        },
+        {
+            "fullname": "schemas.SIMPLE_SCHEMA",
+            "name": "SIMPLE_SCHEMA",
+            "project": "schemas",
+            "schema": {
+                "properties": {"name": {"type": "string"}, "price": {"type": "number"}},
+                "required": ["name"],
+                "type": "object",
+            },
+            "tasks": ["TASK_EXAMPLE"],
+        },
+    ]

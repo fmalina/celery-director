@@ -2,6 +2,7 @@ import click
 import json
 from json.decoder import JSONDecodeError
 from terminaltables import AsciiTable
+import uuid
 
 from flask_json_schema import JsonValidationError
 
@@ -13,7 +14,7 @@ from director.models.workflows import Workflow
 from director.utils import validate, format_schema_errors, build_celery_schedule
 
 
-def tasks_to_ascii(tasks):
+def tasks_to_ascii(tasks, hooks):
     tasks_str = ""
     # Wrap the tasks list
     for task in tasks:
@@ -24,6 +25,11 @@ def tasks_to_ascii(tasks):
                 tasks_str += f" └ {task_name}\n"
         else:
             tasks_str += f"{task}\n"
+
+    if "failure" in hooks:
+        tasks_str += f"Failure hook: {hooks['failure']}\n"
+    if "success" in hooks:
+        tasks_str += f"Success hook: {hooks['success']}\n"
 
     # Just remove the last newline
     if tasks_str:
@@ -53,7 +59,9 @@ def list_workflow(ctx):
         periodic = "--"
         if conf.get("periodic"):
             periodic, _ = build_celery_schedule(name, conf["periodic"])
-        tasks_str = tasks_to_ascii(conf["tasks"])
+        tasks_str = tasks_to_ascii(
+            conf["tasks"], conf["hooks"] if "hooks" in conf else {}
+        )
         data.append([name, periodic, tasks_str])
 
     table = AsciiTable(data)
@@ -73,7 +81,9 @@ def show_workflow(ctx, name):
         click.echo(f"Error: {e}")
         raise click.Abort()
 
-    tasks_str = tasks_to_ascii(_workflow["tasks"])
+    tasks_str = tasks_to_ascii(
+        _workflow["tasks"], _workflow["hooks"] if "hooks" in _workflow else {}
+    )
     periodic = "--"
     if _workflow.get("periodic"):
         periodic, _ = build_celery_schedule(name, _workflow["periodic"])
@@ -96,8 +106,9 @@ def show_workflow(ctx, name):
 @workflow.command(name="run")
 @click.argument("fullname")
 @click.argument("payload", required=False, default="{}")
+@click.option("--comment", help="A comment for the workflow instance.")
 @pass_ctx
-def run_workflow(ctx, fullname, payload):
+def run_workflow(ctx, fullname, payload, comment):
     """Execute a workflow"""
     try:
         wf = cel_workflows.get_by_name(fullname)
@@ -123,9 +134,58 @@ def run_workflow(ctx, fullname, payload):
 
     # Create the workflow object
     project, name = fullname.split(".")
-    obj = Workflow(project=project, name=name, payload=payload)
+    obj = Workflow(project=project, name=name, payload=payload, comment=comment)
     obj.save()
 
     # Build the canvas and execute it
     _workflow = WorkflowBuilder(obj.id)
     _workflow.run()
+
+    click.echo(f"Workflow {obj.id} launched")
+
+
+@workflow.command(name="cancel")
+@click.argument("id")
+@pass_ctx
+def cancel_workflow(ctx, id):
+    """Cancel a workflow"""
+    try:
+        uuid.UUID(id)
+    except ValueError:
+        click.echo(f"Invalid UUID")
+        raise click.Abort()
+    obj = Workflow.query.filter_by(id=id).first()
+    if not obj:
+        click.echo(f"Workflow {id} does not exist")
+        raise click.Abort()
+
+    workflow = WorkflowBuilder(obj.id)
+    workflow.cancel()
+
+    click.echo(f"Workflow {id} canceled")
+
+
+@workflow.command(name="relaunch")
+@click.argument("id")
+@pass_ctx
+def relaunch_workflow(ctx, id):
+    """Relaunch a workflow"""
+    try:
+        uuid.UUID(id)
+    except ValueError:
+        click.echo(f"Invalid UUID")
+        raise click.Abort()
+    obj = Workflow.query.filter_by(id=id).first()
+    if not obj:
+        click.echo(f"Workflow {id} does not exist")
+        raise click.Abort()
+
+    # Create the workflow in DB
+    obj = Workflow(project=obj.project, name=obj.name, payload=obj.payload)
+    obj.save()
+
+    # Build the workflow and execute it
+    workflow = WorkflowBuilder(obj.id)
+    workflow.run()
+
+    click.echo(f"Workflow {obj.id} relaunched")

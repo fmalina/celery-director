@@ -19,10 +19,10 @@ except FileNotFoundError:
 
 dev_requirements = [
     "tox==3.5.3",
-    "black==20.8b1",
+    "black==22.3.0",
 ]
 
-doc_requirements = ["mkdocs==1.0.4", "mkdocs-material==4.6.3"]
+doc_requirements = ["mkdocs==1.3.0", "mkdocs-material==8.2.9"]
 
 
 setup(
@@ -51,9 +51,11 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: System :: Monitoring",
     ],
-    python_requires="~=3.6",
+    python_requires="~=3.8",
 )

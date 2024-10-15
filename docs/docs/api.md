@@ -16,6 +16,7 @@ Accept: application/json
 
 - `per_page` (optional, default: 1000): the number of workflows to return
 - `page` (optional, default: 1): the page to start
+- `with_payload` (optional, default: True): return the "payload" property inside the workflows list response
 
 **Example response:**
 
@@ -168,6 +169,61 @@ HTTP/1.1 201 CREATED
 }
 
 ```
+
+## **GET** `/api/definitions`
+
+Get the definitions of the workflows.
+
+**Example request:**
+
+```
+GET /api/list/workflows
+Host: example.com
+Accept: application/json
+```
+
+**Example response:**
+
+```
+HTTP/1.1 200 OK
+
+[
+    {
+        "fullname": "example.ETL",
+        "name": "ETL",
+        "periodic": {
+            "interval": 3600,
+            "payload": {
+                "dry_run": false
+            }
+        },
+        "project": "example",
+        "tasks": [
+            "EXTRACT",
+            "TRANSFORM",
+            "LOAD"
+        ]
+    },
+    {
+        "fullname": "example.RANDOMS",
+        "name": "RANDOMS",
+        "project": "example",
+        "tasks": [
+            {
+                "GROUP_RANDOMS": {
+                    "tasks": [
+                        "RANDOM",
+                        "RANDOM"
+                    ],
+                    "type": "group"
+                }
+            },
+            "ADD"
+        ]
+    }
+]
+```
+
 
 ## **GET** `/api/ping`
 

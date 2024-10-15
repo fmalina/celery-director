@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.9.0 - 2023-05-02
+### Changed
+- **Remove Python 3.7 support**
+
+### Fixed
+- Upgrade redis and sentry requirements to fix security issues
+
+## 0.8.0 - 2023-02-21
+### Changed
+- Bump environs and werkzeug packages
+- Add Python 3.10 and 3.11 in supported versions
+
+### Fixed
+- Increment the cancel wait between 2 tests
+
+### Added
+- Add an optional comment when executing a workflow
+
+
+## 0.7.0 - 2022-12-08
+### Changed
+- Bump Flower dependency
+
+### Fixed
+- Fix importlib-metadata in specific version to avoid Py3.7
+- Updrade sql requirements to support the online mode
+
+### Added
+- Add workflow hooks (success and failure) feature
+- Add possibility to relaunch workflow with the CLI
+- Add possibility to cancel a workflow
+
+
+## 0.6.0 - 2022-07-25
+### Changed
+- Bump Flower dependency
+
+### Added
+- Add the definitions page used to list and execute workflows
+- Add a sidebar to display the menu
+- Add documentation about Flower usage
+- Add per-task queue routing
+
+
+## 0.5.0 - 2022-05-02
+### Changed
+- **Remove Python 3.6 support**
+- Add Python 3.9 support
+- UI doesn't include payload when listing all workflows
+- Bump dependencies (black, celery, click, flask, mkdocs, psycopg2-binary, redis)
+
+### Fixed
+- Upgrade itsdangerous package to avoid unwanted bump
+
+### Added
+- Add `with_payload` query param when listing workflows
+- Add a new API route to list the worflows definitions (`GET /definitions`)
+- Add the `DIRECTOR_REPO_LINK` variable to customize the repository link in UI
+- Add a switch button in the UI to enable/disable the dark theme
+
+
 ## 0.4.0 - 2021-09-13
 ### Changed
 - Update WebUI to display all dates on the local user timezone (the offset is displayed along the side of each date)

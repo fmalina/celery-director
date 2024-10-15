@@ -5,7 +5,6 @@ from environs import Env
 
 
 HIDDEN_CONFIG = [
-    "DIRECTOR_ENABLE_DARK_THEME",
     "DIRECTOR_ENABLE_HISTORY_MODE",
     "DIRECTOR_REFRESH_INTERVAL",
     "DIRECTOR_API_URL",
@@ -23,7 +22,9 @@ class Config(object):
     def __init__(self, home_path=None, config_path=None):
         if not home_path or not Path(home_path).resolve().exists():
             raise ValueError("environment variable DIRECTOR_HOME is not set correctly")
-        self.DIRECTOR_HOME = env_path = str(home_path)
+
+        env_path = Path(home_path) / ".env"
+        self.DIRECTOR_HOME = str(home_path)
 
         if config_path:
             if not Path(config_path).resolve().exists():
@@ -35,7 +36,6 @@ class Config(object):
         env = Env()
         env.read_env(env_path)
 
-        self.ENABLE_DARK_THEME = env.bool("DIRECTOR_ENABLE_DARK_THEME", False)
         self.ENABLE_HISTORY_MODE = env.bool("DIRECTOR_ENABLE_HISTORY_MODE", False)
         self.ENABLE_CDN = env.bool("DIRECTOR_ENABLE_CDN", True)
         self.STATIC_FOLDER = env.str(
@@ -45,6 +45,12 @@ class Config(object):
         self.FLOWER_URL = env.str("DIRECTOR_FLOWER_URL", "http://127.0.0.1:5555")
         self.WORKFLOWS_PER_PAGE = env.int("DIRECTOR_WORKFLOWS_PER_PAGE", 1000)
         self.REFRESH_INTERVAL = env.int("DIRECTOR_REFRESH_INTERVAL", 30000)
+        self.REPO_LINK = env.str(
+            "DIRECTOR_REPO_LINK", "https://github.com/ovh/celery-director"
+        )
+        self.DOCUMENTATION_LINK = env.str(
+            "DIRECTOR_DOCUMENTATION_LINK", "https://ovh.github.io/celery-director"
+        )
 
         # Authentication
         self.AUTH_ENABLED = env.bool("DIRECTOR_AUTH_ENABLED", False)
@@ -72,6 +78,9 @@ class Config(object):
 
         # Default retention value (number of workflows to keep in the database)
         self.DEFAULT_RETENTION_OFFSET = env.int("DIRECTOR_DEFAULT_RETENTION_OFFSET", -1)
+
+        # Enable Vue debug loading vue.js instead of vue.min.js
+        self.VUE_DEBUG = env.bool("DIRECTOR_VUE_DEBUG", False)
 
 
 class UserConfig(dict):

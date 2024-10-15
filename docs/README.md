@@ -6,10 +6,10 @@ We use mkdocs to build the Celery Director documentation.
 The first step is to install the requirements inside your virtualenv :
 
 ```
-(venv) git clone https://github.com/ovh/director
-(venv) cd director/docs
-(venv) pip install mkdocs==1.0.4
-(venv) pip install mkdocs-material==4.6.3
+(venv) git clone https://github.com/ovh/celery-director
+(venv) cd celery-director/docs
+(venv) pip install mkdocs
+(venv) pip install mkdocs-material
 ```
 
 Then you can launch the builtins webserver :

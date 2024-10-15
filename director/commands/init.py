@@ -17,9 +17,12 @@ DIRECTOR_RESULT_BACKEND_URI="redis://127.0.0.1:6379/1"
 # ---------- Frontend ---------- 
 DIRECTOR_API_URL="http://127.0.0.1:8000/api"
 DIRECTOR_FLOWER_URL="http://127.0.0.1:5555"
-DIRECTOR_ENABLE_DARK_THEME=false
 DIRECTOR_ENABLE_HISTORY_MODE=false
 DIRECTOR_REFRESH_INTERVAL=30000
+DIRECTOR_REPO_LINK="https://github.com/ovh/celery-director"
+DIRECTOR_DOCUMENTATION_LINK="https://ovh.github.io/celery-director"
+DIRECTOR_VUE_DEBUG=false
+
 
 # ---------- API ----------
 DIRECTOR_WORKFLOWS_PER_PAGE=1000

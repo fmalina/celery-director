@@ -3,6 +3,11 @@
 Director separates the tasks logic from the workflows definition by providing a
 simple YAML syntax.
 
+!!! note
+    A workflow declaration in Celery Director is always composed of 2 parts (the project name and the workflow name) separated by a dot, for instance: `project.workflow`.
+
+    In the following examples the name of the workflows has been capitalized, but this is just a convention we use at OVHcloud and it's not mandatory.
+
 Let's imagine the following tasks :
 
 ```python
@@ -111,7 +116,7 @@ periodic:
 So in the first example, the *example.CHAIN* workflow will be executed **every 60 seconds** and the second one, *example.CHAIN_CRONTAB*, **every three hours**.
 
 !!! warning
-    Older versions of Celery Director used the `periodic > schedule` key which is now deprecated.
+    Older versions of Celery Director (< 0.4.0) used the `periodic > schedule` key which is now deprecated.
 
     It is strongly advised to migrate to `periodic > interval` or `periodic > crontab` keys to set up a scheduled workflow.
 

@@ -3,7 +3,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/ovh/celery-director/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/ovh/celery-director/workflows/Tests/badge.svg"></a>
-  <a href="https://www.python.org/"><img alt="Python versions" src="https://img.shields.io/badge/python-3.6%2B-blue.svg"></a>
+  <a href="https://www.python.org/"><img alt="Python versions" src="https://img.shields.io/badge/python-3.8%2B-blue.svg"></a>
   <a href="https://github.com/ovh/depc/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-BSD%203--Clause-blue.svg"></a>
   <a href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
@@ -17,8 +17,8 @@ Director is a simple and rapid framework used to manage tasks and build workflow
 
 The objective is to make Celery easier to use by providing :
 
+- a WebUI, an API and a CLI to manage and execute the workflows,
 - a WebUI to track the tasks states,
-- an API and a CLI to manage and execute the workflows,
 - a YAML syntax used to combine tasks into workflows,
 - the ability to periodically launch a whole workflow,
 - and many others.
@@ -27,7 +27,7 @@ See how to use Director with the quickstart and guides in the [documentation](ht
 
 ## Installation
 
-Install the latest version of Director with pip (requires `Python 3.6` at least):
+Install the latest version of Director with pip (requires at least `Python 3.7`):
 
 ```bash
 pip install celery-director

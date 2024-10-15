@@ -22,6 +22,8 @@ nav:
     - 'Use Payload': 'guides/use-payload.md'
     - 'Error Tracking': 'guides/error-tracking.md'
     - 'Custom Configuration': 'guides/custom-configuration.md'
+    - 'Use Flower': 'guides/use-flower.md'
+    - 'Trigger Hooks': 'guides/trigger-hooks.md'
   - API: 'api.md'
 
 extra_css:
@@ -29,4 +31,6 @@ extra_css:
 
 markdown_extensions:
   - admonition
-  - codehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
